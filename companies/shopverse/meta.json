@@ -1,0 +1,22 @@
+{
+  "company_id": "shopverse",
+  "company_name": "ShopVerse",
+  "description": "Online e-commerce platform offering a wide range of products including electronics, fashion, home goods, and lifestyle essentials",
+  "active": true,
+  "categories": [
+    "orders",
+    "shipping",
+    "returns",
+    "payments",
+    "products",
+    "accounts",
+    "support"
+  ],
+  "contact": {
+    "email": "support@shopverse.com",
+    "phone": "1-800-SHOP-123",
+    "whatsapp": "+1-800-746-7123",
+    "hours": "Monday to Sunday, 9 AM – 9 PM",
+    "emergency": "For urgent delivery issues, contact support immediately"
+  }
+}

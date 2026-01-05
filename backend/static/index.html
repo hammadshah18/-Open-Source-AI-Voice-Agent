@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Voice Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .status.idle {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status.connecting {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .status.active {
+            background: #e8f5e9;
+            color: #388e3c;
+            animation: pulse 2s infinite;
+        }
+
+        .status.speaking {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .call-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .call-button.idle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .call-button.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .call-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .call-button:active {
+            transform: scale(0.95);
+        }
+
+        .call-button .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .call-button .text {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .transcript {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+        }
+
+        .message.user {
+            background: #e3f2fd;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.agent {
+            background: #f3e5f5;
+            margin-right: auto;
+        }
+
+        .message .role {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .message .text {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .audio-visualizer {
+            margin: 20px 0;
+            height: 60px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 10px;
+        }
+
+        .audio-bar {
+            width: 4px;
+            height: 20px;
+            background: #667eea;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .audio-bar.active {
+            animation: audioWave 0.5s infinite alternate;
+        }
+
+        @keyframes audioWave {
+            from { height: 10px; }
+            to { height: 40px; }
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI Voice Agent</h1>
+        <p class="subtitle">Talk to your AI assistant with voice</p>
+
+        <div class="status idle" id="status">
+            Ready to connect
+        </div>
+
+        <button class="call-button idle" id="callButton" onclick="toggleCall()">
+            <div class="icon">📞</div>
+            <div class="text">Call Agent</div>
+        </button>
+
+        <div class="audio-visualizer" id="visualizer">
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="muteBtn" onclick="toggleMute()" disabled>
+                🔇 Mute
+            </button>
+            <button class="control-btn" id="clearBtn" onclick="clearTranscript()">
+                🗑️ Clear
+            </button>
+        </div>
+
+        <div class="transcript" id="transcript">
+            <p style="color: #999; text-align: center;">Conversation will appear here...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        let audioContext;
+        let analyser;
+        let audioProcessor;
+        let audioStream;
+        let isCallActive = false;
+        let isMuted = false;
+        let ws;
+        let audioQueue = [];
+        let isPlaying = false;
+        let audioBufferQueue = [];
+
+        const statusEl = document.getElementById('status');
+        const callButtonEl = document.getElementById('callButton');
+        const transcriptEl = document.getElementById('transcript');
+        const errorEl = document.getElementById('error');
+        const muteBtn = document.getElementById('muteBtn');
+        const visualizerBars = document.querySelectorAll('.audio-bar');
+
+        // WAV encoding function
+        function encodeWAV(samples, sampleRate) {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+
+            // WAV header
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + samples.length * 2, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, 1, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, samples.length * 2, true);
+
+            // Write PCM samples
+            let offset = 44;
+            for (let i = 0; i < samples.length; i++, offset += 2) {
+                let s = Math.max(-1, Math.min(1, samples[i]));
+                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            }
+
+            return buffer;
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        async function toggleCall() {
+            if (!isCallActive) {
+                await startCall();
+            } else {
+                endCall();
+            }
+        }
+
+        async function startCall() {
+            try {
+                updateStatus('connecting', 'Connecting to agent...');
+                showError('');
+
+                // Request microphone permission
+                audioStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        sampleRate: 16000,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    } 
+                });
+
+                // Setup audio context for visualization
+                audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(audioStream);
+                source.connect(analyser);
+                analyser.fftSize = 256;
+
+                // Start visualization
+                visualizeAudio();
+
+                // Connect to backend WebSocket
+                ws = new WebSocket(`ws://localhost:8000/ws/call`);
+
+                ws.onopen = () => {
+                    isCallActive = true;
+                    updateStatus('active', '🎙️ Call Active - Speak now!');
+                    updateCallButton(true);
+                    muteBtn.disabled = false;
+
+                    // Use ScriptProcessor for raw audio capture
+                    audioProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+                    source.connect(audioProcessor);
+                    audioProcessor.connect(audioContext.destination);
+
+                    // Collect audio samples and send every 2 seconds
+                    audioProcessor.onaudioprocess = (e) => {
+                        if (!isMuted && ws.readyState === WebSocket.OPEN) {
+                            const inputData = e.inputBuffer.getChannelData(0);
+                            audioBufferQueue.push(new Float32Array(inputData));
+
+                            // Send every ~2 seconds (16000 samples/sec * 2 = 32000 samples)
+                            const totalSamples = audioBufferQueue.reduce((sum, arr) => sum + arr.length, 0);
+                            if (totalSamples >= 32000) {
+                                // Merge all buffers
+                                const mergedBuffer = new Float32Array(totalSamples);
+                                let offset = 0;
+                                for (const buf of audioBufferQueue) {
+                                    mergedBuffer.set(buf, offset);
+                                    offset += buf.length;
+                                }
+                                
+                                // Encode as WAV and send
+                                const wavBuffer = encodeWAV(mergedBuffer, 16000);
+                                console.log('Sending WAV audio:', wavBuffer.byteLength, 'bytes');
+                                ws.send(wavBuffer);
+                                
+                                // Clear buffer
+                                audioBufferQueue = [];
+                            }
+                        }
+                    };
+                };
+
+                ws.onmessage = async (event) => {
+                    const data = JSON.parse(event.data);
+
+                    if (data.type === 'greeting') {
+                        addMessage('agent', data.text);
+                        playAudio(data.audio);
+                    } else if (data.type === 'transcript') {
+                        addMessage('user', data.text);
+                    } else if (data.type === 'response') {
+                        addMessage('agent', data.text);
+                        playAudio(data.audio);
+                    } else if (data.type === 'status') {
+                        updateStatus(data.status, data.message);
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    showError('Connection error. Make sure the server is running.');
+                    endCall();
+                };
+
+                ws.onclose = () => {
+                    if (isCallActive) {
+                        endCall();
+                    }
+                };
+
+            } catch (error) {
+                console.error('Error starting call:', error);
+                showError('Could not access microphone. Please allow microphone access.');
+                endCall();
+            }
+        }
+
+        function endCall() {
+            isCallActive = false;
+            updateStatus('idle', 'Call ended');
+            updateCallButton(false);
+            muteBtn.disabled = true;
+
+            if (audioProcessor) {
+                audioProcessor.disconnect();
+                audioProcessor = null;
+            }
+
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
+            }
+
+            if (ws) {
+                ws.close();
+            }
+
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+
+            stopVisualization();
+            audioBufferQueue = [];
+        }
+
+        function stopVisualization() {
+            // Stop visualization
+            visualizerBars.forEach(bar => bar.classList.remove('active'));
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            muteBtn.textContent = isMuted ? '🔊 Unmute' : '🔇 Mute';
+            updateStatus(isMuted ? 'idle' : 'active', isMuted ? 'Microphone muted' : '🎙️ Call Active - Speak now!');
+        }
+
+        function visualizeAudio() {
+            if (!analyser || !isCallActive) return;
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(dataArray);
+
+            const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+            const isActive = average > 10;
+
+            visualizerBars.forEach((bar, index) => {
+                if (isActive) {
+                    bar.classList.add('active');
+                    bar.style.animationDelay = `${index * 0.05}s`;
+                } else {
+                    bar.classList.remove('active');
+                }
+            });
+
+            requestAnimationFrame(visualizeAudio);
+        }
+
+        function playAudio(base64Audio) {
+            updateStatus('speaking', '🔊 Agent is speaking...');
+
+            const audio = new Audio(`data:audio/wav;base64,${base64Audio}`);
+            audio.onended = () => {
+                if (isCallActive) {
+                    updateStatus('active', '🎙️ Your turn - Speak now!');
+                }
+            };
+            audio.play();
+        }
+
+        function updateStatus(type, message) {
+            statusEl.className = `status ${type}`;
+            statusEl.textContent = message;
+        }
+
+        function updateCallButton(active) {
+            callButtonEl.className = `call-button ${active ? 'active' : 'idle'}`;
+            callButtonEl.querySelector('.icon').textContent = active ? '📴' : '📞';
+            callButtonEl.querySelector('.text').textContent = active ? 'End Call' : 'Call Agent';
+        }
+
+        function addMessage(role, text) {
+            if (transcriptEl.querySelector('p[style*="color: #999"]')) {
+                transcriptEl.innerHTML = '';
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.innerHTML = `
+                <div class="role">${role === 'user' ? 'You' : 'Agent'}</div>
+                <div class="text">${text}</div>
+            `;
+            transcriptEl.appendChild(messageDiv);
+            transcriptEl.scrollTop = transcriptEl.scrollHeight;
+        }
+
+        function clearTranscript() {
+            transcriptEl.innerHTML = '<p style="color: #999; text-align: center;">Conversation will appear here...</p>';
+        }
+
+        function showError(message) {
+            if (message) {
+                errorEl.textContent = message;
+                errorEl.classList.add('show');
+            } else {
+                errorEl.classList.remove('show');
+            }
+        }
+
+        // Check server connectivity on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('http://localhost:8000/health');
+                if (!response.ok) {
+                    showError('Server is not responding. Please start the backend server.');
+                }
+            } catch (error) {
+                showError('Cannot connect to server. Please make sure the backend is running on port 8000.');
+            }
+        });
+    </script>
+</body>
+</html>

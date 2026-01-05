@@ -1,0 +1,44 @@
+{
+  "services": [
+    {
+      "name": "Online Shopping",
+      "category": "services",
+      "description": "Browse and purchase thousands of products across multiple categories including electronics, fashion, beauty, home appliances, groceries, and lifestyle items. Secure checkout, multiple payment options, and fast delivery available."
+    },
+    {
+      "name": "Order Management",
+      "category": "orders",
+      "description": "Customers can view order history, track shipments in real time, cancel eligible orders, download invoices, and receive order status notifications via email and SMS."
+    },
+    {
+      "name": "Shipping & Delivery",
+      "category": "shipping",
+      "description": "Standard, express, and same-day delivery options available in select locations. Real-time tracking, estimated delivery dates, and delivery confirmation provided."
+    },
+    {
+      "name": "Returns & Refunds",
+      "category": "returns",
+      "description": "Easy return process through the customer account dashboard. Eligible products can be returned within the return window for refunds, replacements, or store credit."
+    },
+    {
+      "name": "Customer Support",
+      "category": "support",
+      "description": "24/7 customer support via live chat, email, and phone. Assistance with orders, payments, returns, refunds, product inquiries, and account issues."
+    },
+    {
+      "name": "Seller Marketplace",
+      "category": "services",
+      "description": "Third-party sellers can list and sell products on ShopVerse. Seller dashboard includes inventory management, order fulfillment tools, analytics, and payment settlement."
+    },
+    {
+      "name": "Gift Services",
+      "category": "services",
+      "description": "Gift wrapping, personalized gift messages, and direct shipping to recipients. Ideal for birthdays, holidays, and special occasions."
+    },
+    {
+      "name": "Subscription & Deals",
+      "category": "services",
+      "description": "Exclusive deals, flash sales, loyalty rewards, and subscription-based savings for frequent shoppers. Members receive early access to promotions."
+    }
+  ]
+}
